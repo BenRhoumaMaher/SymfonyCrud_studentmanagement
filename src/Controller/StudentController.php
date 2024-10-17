@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use DateTime;
 
 #[Route('/student')]
 final class StudentController extends AbstractController
@@ -26,6 +27,7 @@ final class StudentController extends AbstractController
                 'name' => $student->getName(),
                 'phone' => $student->getPhone(),
                 'place' => $student->getPlace(),
+                'date' => $student->getDate()->format('Y-m-d'),
             ];
         }
         $response = $this->json($data);
@@ -41,6 +43,8 @@ final class StudentController extends AbstractController
         $student = new Student();
         $content = json_decode($request->getContent());
         $student->setName($content->name);
+        $date = new DateTime($content->date);
+        $student->setDate($date);
         $student->setPlace($content->place);
         $student->setPhone($content->phone);
 
@@ -50,8 +54,9 @@ final class StudentController extends AbstractController
         $data = [
             'id' => $student->getId(),
             'name' => $student->getName(),
-            'phone' => $student->getPhone(),
+            'date' => $student->getDate()->format('Y-m-d H:i:s'),
             'place' => $student->getPlace(),
+            'phone' => $student->getPhone(),
         ];
 
         $response = $this->json($data);
@@ -76,6 +81,7 @@ final class StudentController extends AbstractController
             'name' => $student->getName(),
             'phone' => $student->getPhone(),
             'place' => $student->getPlace(),
+            'date' => $student->getDate()->format('Y-m-d'),
         ];
         $response = $this->json($data);
         $response->headers->set('Access-Control-Allow-Origin', '*');
@@ -102,13 +108,16 @@ final class StudentController extends AbstractController
         $student->setName($content->name);
         $student->setPlace($content->place);
         $student->setPhone($content->phone);
+        $date = new DateTime($content->date);
+        $student->setDate($date);
 
         $entityManager->flush();
         $data = [
             'id' => $student->getId(),
             'name' => $student->getName(),
-            'phone' => $student->getPhone(),
             'place' => $student->getPlace(),
+            'phone' => $student->getPhone(),
+            'date' => $student->getDate()->format('Y-m-d H:i:s'),
         ];
         $response = $this->json($data);
         $response->headers->set('Access-Control-Allow-Origin', '*');

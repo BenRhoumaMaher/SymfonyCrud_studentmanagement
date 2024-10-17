@@ -15,6 +15,7 @@ class AppFixtures extends Fixture
             $student->setName('Student '.$i);
             $student->setPlace('Place '.$i);
             $student->setPhone('Phone '.$i);
+            $student->setDate(new \DateTimeImmutable());
             $manager->persist($student);
         }
 
