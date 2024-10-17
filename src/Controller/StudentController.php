@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Student;
 use App\Form\StudentType;
+use App\Repository\ClasseRepository;
 use App\Repository\StudentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +29,7 @@ final class StudentController extends AbstractController
                 'phone' => $student->getPhone(),
                 'place' => $student->getPlace(),
                 'date' => $student->getDate()->format('Y-m-d'),
+                'classe' => $student->getClasse()->getName(),
             ];
         }
         $response = $this->json($data);
@@ -38,7 +40,8 @@ final class StudentController extends AbstractController
     #[Route('/new', name: 'app_student_new', methods: ['GET', 'POST'])]
     public function new(
         Request $request,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ClasseRepository $classrepository
     ): JsonResponse {
         $student = new Student();
         $content = json_decode($request->getContent());
@@ -47,16 +50,23 @@ final class StudentController extends AbstractController
         $student->setDate($date);
         $student->setPlace($content->place);
         $student->setPhone($content->phone);
+        $student->setClasse(
+            $classrepository->find(
+                $content->
+                classe
+            )
+        );
 
         $entityManager->persist($student);
         $entityManager->flush();
 
         $data = [
-            'id' => $student->getId(),
-            'name' => $student->getName(),
-            'date' => $student->getDate()->format('Y-m-d H:i:s'),
-            'place' => $student->getPlace(),
-            'phone' => $student->getPhone(),
+                'id' => $student->getId(),
+                'name' => $student->getName(),
+                'date' => $student->getDate()->format('Y-m-d H:i:s'),
+                'place' => $student->getPlace(),
+                'phone' => $student->getPhone(),
+                'classe' => $student->getClasse()->getName(),
         ];
 
         $response = $this->json($data);
@@ -66,8 +76,10 @@ final class StudentController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_student_show', methods: ['GET'])]
-    public function show(StudentRepository $studentRepository, int $id): Response
-    {
+    public function show(
+        StudentRepository $studentRepository,
+        int $id
+    ): Response {
         $student = $studentRepository->find($id);
 
         if (!$student) {
@@ -82,6 +94,7 @@ final class StudentController extends AbstractController
             'phone' => $student->getPhone(),
             'place' => $student->getPlace(),
             'date' => $student->getDate()->format('Y-m-d'),
+            'classe' => $student->getClasse()->getName(),
         ];
         $response = $this->json($data);
         $response->headers->set('Access-Control-Allow-Origin', '*');
@@ -94,7 +107,8 @@ final class StudentController extends AbstractController
         Request $request,
         int $id,
         StudentRepository $studentRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        ClasseRepository $classeRepository
     ): Response {
         $student = $studentRepository->find($id);
 
@@ -110,6 +124,12 @@ final class StudentController extends AbstractController
         $student->setPhone($content->phone);
         $date = new DateTime($content->date);
         $student->setDate($date);
+        $student->setClasse(
+            $classeRepository->find(
+                $content->
+                classe
+            )
+        );
 
         $entityManager->flush();
         $data = [
@@ -118,6 +138,7 @@ final class StudentController extends AbstractController
             'place' => $student->getPlace(),
             'phone' => $student->getPhone(),
             'date' => $student->getDate()->format('Y-m-d H:i:s'),
+            'classe' => $student->getClasse()->getName(),
         ];
         $response = $this->json($data);
         $response->headers->set('Access-Control-Allow-Origin', '*');
@@ -147,5 +168,27 @@ final class StudentController extends AbstractController
             ' has been deleted successfully'
         );
 
+    }
+
+    #[Route('/api/classes', name: 'get_classes', methods: ['GET'])]
+    public function getClasses(
+        ClasseRepository $classeRepository
+    ): JsonResponse {
+
+        $classes = $classeRepository->findAll();
+
+        $data = array_map(
+            fn (
+                $classe
+            ) => [
+            'id' => $classe->getId(),
+            'name' => $classe->getName()
+            ],
+            $classes
+        );
+
+        $response = $this->json($data);
+        $response->headers->set('Access-Control-Allow-Origin', '*');
+        return $response;
     }
 }
