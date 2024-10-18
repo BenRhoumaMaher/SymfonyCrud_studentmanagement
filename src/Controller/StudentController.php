@@ -12,12 +12,23 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use OpenApi\Attributes as OA;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use DateTime;
 
 #[Route('/student')]
 final class StudentController extends AbstractController
 {
     #[Route('/', name: 'app_student_index', methods: ['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Return a list of students',
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref: new Model(type: Student::class))
+        )
+    )]
+    #[OA\Tag(name: 'Students')]
     public function index(StudentRepository $studentRepository): JsonResponse
     {
         $students = $studentRepository->findAll();
@@ -38,6 +49,26 @@ final class StudentController extends AbstractController
     }
 
     #[Route('/new', name: 'app_student_new', methods: ['GET', 'POST'])]
+    #[OA\Response(
+        response: 201,
+        description: 'Create a new student',
+        content: new OA\JsonContent(
+            ref: new Model(type: Student::class)
+        )
+    )]
+    #[OA\RequestBody(
+        description: 'Details of the new student',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'name', type: 'string'),
+                new OA\Property(property: 'phone', type: 'string'),
+                new OA\Property(property: 'place', type: 'string'),
+                new OA\Property(property: 'date', type: 'string', format: 'date'),
+                new OA\Property(property: 'classe', type: 'integer'),
+            ]
+        )
+    )]
+    #[OA\Tag(name: 'Students')]
     public function new(
         Request $request,
         EntityManagerInterface $entityManager,
@@ -76,6 +107,12 @@ final class StudentController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_student_show', methods: ['GET'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Return a specific student',
+        content: new OA\JsonContent(ref: new Model(type: Student::class))
+    )]
+    #[OA\Tag(name: 'Students')]
     public function show(
         StudentRepository $studentRepository,
         int $id
@@ -103,6 +140,24 @@ final class StudentController extends AbstractController
     }
 
     #[Route('/edit/{id}', name: 'app_student_edit', methods: ['PUT'])]
+    #[OA\Response(
+        response: 200,
+        description: 'Update an existing student',
+        content: new OA\JsonContent(ref: new Model(type: Student::class))
+    )]
+    #[OA\RequestBody(
+        description: 'Fields to update',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'name', type: 'string'),
+                new OA\Property(property: 'phone', type: 'string'),
+                new OA\Property(property: 'place', type: 'string'),
+                new OA\Property(property: 'date', type: 'string', format: 'date'),
+                new OA\Property(property: 'classe', type: 'integer'),
+            ]
+        )
+    )]
+    #[OA\Tag(name: 'Students')]
     public function edit(
         Request $request,
         int $id,
@@ -147,6 +202,12 @@ final class StudentController extends AbstractController
     }
 
     #[Route('/delete/{id}', name: 'app_student_delete', methods: ["DELETE"])]
+    #[OA\Response(
+        response: 200,
+        description: 'Delete a student',
+        content: new OA\JsonContent(ref: new Model(type: Student::class))
+    )]
+    #[OA\Tag(name: 'Students')]
     public function delete(
         Request $request,
         int $id,
